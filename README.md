@@ -6,10 +6,15 @@
 
 
 EsportPlant —— 电竞超植操作系统
+
 项目概述
+
 EsportPlant 是一个面向电竞数据管理的综合性工具平台，集成了数据库管理、文件系统操作、系统监控和中文字符画生成等功能。项目采用三层架构：
+
 后端：Spring Boot 3.2 + MySQL 8.4
+
 Web 前端：原生 HTML/CSS/JavaScript（赛博朋克风格）
+
 桌面端：JavaFX 25（同风格 GUI）
 
 核心功能模块
