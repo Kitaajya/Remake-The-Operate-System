@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EsportPlant - 电竞操作系统</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: .6; } }
+        @keyframes scanline { 0% { top: -100%; } 100% { top: 100%; } }
+        @keyframes glitch {
+            0%,100% { text-shadow: 2px 0 #0ff, -2px 0 #f0f; }
+            25% { text-shadow: -2px -2px #0ff, 2px 2px #f0f; }
+            50% { text-shadow: 2px 2px #0ff, -2px -2px #f0f; }
+            75% { text-shadow: -2px 0 #0ff, 2px 0 #f0f; }
+        }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes borderGlow { 0%,100% { box-shadow: 0 0 5px var(--accent), inset 0 0 5px rgba(0,255,255,.05); } 50% { box-shadow: 0 0 20px var(--accent), inset 0 0 10px rgba(0,255,255,.1); } }
+
+        :root {
+            --bg: #0a0a12;
+            --surface: #111122;
+            --surface2: #161630;
+            --border: #1e1e3a;
+            --accent: #00ffff;
+            --accent2: #ff00ff;
+            --accent3: #7b2fff;
+            --green: #00ff88;
+            --red: #ff3366;
+            --yellow: #ffcc00;
+            --text: #e0e0f0;
+            --text-dim: #6a6a8a;
+        }
+
+        body {
+            font-family: 'Consolas', 'Courier New', monospace;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: repeating-linear-gradient(
+                0deg,
+                transparent,
+                transparent 2px,
+                rgba(0,255,255,.015) 2px,
+                rgba(0,255,255,.015) 4px
+            );
+            pointer-events: none;
+            z-index: 9999;
+        }
+
+        .scanline {
+            position: fixed;
+            top: -100%;
+            left: 0; right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, transparent, rgba(0,255,255,.3), transparent);
+            animation: scanline 6s linear infinite;
+            pointer-events: none;
+            z-index: 9998;
+        }
+
+        header {
+            text-align: center;
+            padding: 40px 20px 20px;
+            position: relative;
+        }
+
+        header h1 {
+            font-size: 2.5em;
+            color: var(--accent);
+            animation: glitch 3s infinite;
+            letter-spacing: 8px;
+            text-transform: uppercase;
+        }
+
+        header .subtitle {
+            color: var(--text-dim);
+            font-size: .9em;
+            margin-top: 8px;
+            letter-spacing: 4px;
+        }
+
+        header .status-bar {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-top: 16px;
+            font-size: .75em;
+            color: var(--text-dim);
+        }
+
+        header .status-bar span::before {
+            content: '● ';
+            color: var(--green);
+            animation: pulse 2s infinite;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 20px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 20px;
+        }
+
+        .card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 24px;
+            animation: fadeIn .6s ease forwards;
+            opacity: 0;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, var(--accent), var(--accent2), var(--accent3));
+        }
+
+        .card:nth-child(1) { animation-delay: .1s; }
+        .card:nth-child(2) { animation-delay: .2s; }
+        .card:nth-child(3) { animation-delay: .3s; }
+        .card:nth-child(4) { animation-delay: .4s; }
+        .card:nth-child(5) { animation-delay: .5s; }
+
+        .card-icon {
+            font-size: 1.8em;
+            margin-bottom: 12px;
+        }
+
+        .card h2 {
+            font-size: 1.1em;
+            color: var(--accent);
+            margin-bottom: 6px;
+            letter-spacing: 2px;
+        }
+
+        .card .desc {
+            font-size: .78em;
+            color: var(--text-dim);
+            margin-bottom: 16px;
+            line-height: 1.5;
+        }
+
+        label {
+            display: block;
+            font-size: .75em;
+            color: var(--text-dim);
+            margin-bottom: 4px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        input[type="text"], textarea {
+            width: 100%;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            padding: 10px 12px;
+            color: var(--text);
+            font-family: inherit;
+            font-size: .85em;
+            outline: none;
+            transition: border-color .2s;
+        }
+
+        input[type="text"]:focus, textarea:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 8px rgba(0,255,255,.15);
+        }
+
+        textarea { resize: vertical; min-height: 80px; }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 20px;
+            border: 1px solid var(--accent);
+            background: transparent;
+            color: var(--accent);
+            font-family: inherit;
+            font-size: .85em;
+            letter-spacing: 1px;
+            cursor: pointer;
+            border-radius: 4px;
+            transition: all .2s;
+            text-transform: uppercase;
+            margin-top: 12px;
+            width: 100%;
+            justify-content: center;
+        }
+
+        .btn:hover {
+            background: rgba(0,255,255,.1);
+            box-shadow: 0 0 15px rgba(0,255,255,.2);
+        }
+
+        .btn:active { transform: scale(.98); }
+
+        .btn.btn-danger {
+            border-color: var(--red);
+            color: var(--red);
+        }
+        .btn.btn-danger:hover {
+            background: rgba(255,51,102,.1);
+            box-shadow: 0 0 15px rgba(255,51,102,.2);
+        }
+
+        .btn.btn-purple {
+            border-color: var(--accent3);
+            color: var(--accent3);
+        }
+        .btn.btn-purple:hover {
+            background: rgba(123,47,255,.1);
+            box-shadow: 0 0 15px rgba(123,47,255,.2);
+        }
+
+        .btn:disabled {
+            opacity: .4;
+            cursor: not-allowed;
+        }
+
+        .input-group { margin-bottom: 10px; }
+
+        .output {
+            margin-top: 12px;
+            padding: 12px;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            font-size: .8em;
+            color: var(--green);
+            white-space: pre-wrap;
+            word-break: break-all;
+            max-height: 300px;
+            overflow-y: auto;
+            display: none;
+            line-height: 1.6;
+        }
+
+        .output.error { color: var(--red); }
+        .output.visible { display: block; }
+
+        .art-output {
+            margin-top: 12px;
+            padding: 16px;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            font-size: 10px;
+            line-height: 10px;
+            color: var(--accent);
+            white-space: pre;
+            overflow-x: auto;
+            display: none;
+        }
+        .art-output.visible { display: block; }
+
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            padding: 14px 24px;
+            border-radius: 6px;
+            font-family: inherit;
+            font-size: .85em;
+            z-index: 10000;
+            animation: fadeIn .3s ease;
+            border: 1px solid;
+        }
+        .toast.success { background: var(--surface); border-color: var(--green); color: var(--green); }
+        .toast.error { background: var(--surface); border-color: var(--red); color: var(--red); }
+
+        .loading { animation: pulse 1s infinite; }
+
+        footer {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--text-dim);
+            font-size: .7em;
+            letter-spacing: 2px;
+        }
+    </style>
+</head>
+<body>
+    <div class="scanline"></div>
+
+    <header>
+        <h1>ESPORT PLANT</h1>
+        <div class="subtitle">// 电竞操作系统 v1.0</div>
+        <div style="margin-top:12px"><a href="/admin.html" style="color:var(--accent2);text-decoration:none;font-size:.75em;border:1px solid var(--accent2);padding:4px 12px;border-radius:4px;letter-spacing:1px;transition:all .2s" onmouseover="this.style.background='rgba(255,0,255,.1)'" onmouseout="this.style.background='transparent'">&#9881; Admin Console</a></div>
+        <div class="status-bar">
+            <span>SYSTEM ONLINE</span>
+            <span id="clock"></span>
+        </div>
+    </header>
+
+    <div class="container">
+        <!-- 1. 数据库写入 -->
+        <div class="card">
+            <div class="card-icon">&#x1F4BE;</div>
+            <h2>数据库操作</h2>
+            <div class="desc">查询 MySQL 数据库 e_table，将数据写入本地文件，并插入新记录。</div>
+            <button class="btn" onclick="doWrite()">
+                <span>&#9654;</span> 执行写入操作
+            </button>
+            <div id="writeOutput" class="output"></div>
+        </div>
+
+        <!-- 2. 文件读取 -->
+        <div class="card">
+            <div class="card-icon">&#x1F4C4;</div>
+            <h2>文件读取</h2>
+            <div class="desc">读取文本文件或 Word 文档 (.docx) 的内容。</div>
+            <div class="input-group">
+                <label>文件路径</label>
+                <input type="text" id="readPath" placeholder="D:\桌面\NameCodeForE_Plant.txt">
+            </div>
+            <button class="btn" onclick="doRead()">
+                <span>&#9654;</span> 读取文件
+            </button>
+            <div id="readOutput" class="output"></div>
+        </div>
+
+        <!-- 3. 文件移动 -->
+        <div class="card">
+            <div class="card-icon">&#x1F4E6;</div>
+            <h2>文件移动</h2>
+            <div class="desc">将文件从源路径移动到目标路径。</div>
+            <div class="input-group">
+                <label>源文件路径</label>
+                <input type="text" id="transferSource" placeholder="C:\source\file.txt">
+            </div>
+            <div class="input-group">
+                <label>目标路径</label>
+                <input type="text" id="transferTarget" placeholder="D:\target\file.txt">
+            </div>
+            <button class="btn" onclick="doTransfer()">
+                <span>&#9654;</span> 移动文件
+            </button>
+            <div id="transferOutput" class="output"></div>
+        </div>
+
+        <!-- 4. 文件删除 -->
+        <div class="card">
+            <div class="card-icon">&#x1F5D1;</div>
+            <h2>文件删除</h2>
+            <div class="desc">将指定文件移入系统回收站（安全删除）。</div>
+            <div class="input-group">
+                <label>文件路径</label>
+                <input type="text" id="deletePath" placeholder="C:\path\to\file.txt">
+            </div>
+            <button class="btn btn-danger" onclick="doDelete()">
+                <span>&#9654;</span> 移入回收站
+            </button>
+            <div id="deleteOutput" class="output"></div>
+        </div>
+
+        <!-- 5. 中文字符画 -->
+        <div class="card">
+            <div class="card-icon">&#x1F3A8;</div>
+            <h2>中文字符画</h2>
+            <div class="desc">将输入的中文文字转换为 ASCII 字符画。</div>
+            <div class="input-group">
+                <label>绘制文字</label>
+                <input type="text" id="drawText" placeholder="唐山神医" value="唐山神医">
+            </div>
+            <button class="btn btn-purple" onclick="doDraw()">
+                <span>&#9654;</span> 生成字符画
+            </button>
+            <div id="drawOutput" class="art-output"></div>
+        </div>
+    </div>
+
+    <footer>
+        ESPORTPLANT &copy; 2026 &mdash; ESPORT OPERATING SYSTEM
+    </footer>
+
+    <script>
+        // Clock
+        function updateClock() {
+            const now = new Date();
+            document.getElementById('clock').textContent =
+                now.toLocaleTimeString('zh-CN', { hour12: false }) + ' // ' +
+                now.toLocaleDateString('zh-CN');
+        }
+        updateClock();
+        setInterval(updateClock, 1000);
+
+        // Toast
+        function toast(msg, type) {
+            const el = document.createElement('div');
+            el.className = 'toast ' + type;
+            el.textContent = msg;
+            document.body.appendChild(el);
+            setTimeout(() => el.remove(), 3000);
+        }
+
+        // Output helper
+        function showOutput(id, text, isError) {
+            const el = document.getElementById(id);
+            el.textContent = text;
+            el.className = 'output visible' + (isError ? ' error' : '');
+        }
+
+        function hideOutput(id) {
+            document.getElementById(id).className = 'output';
+        }
+
+        // Loading state
+        function setLoading(btn, loading) {
+            btn.disabled = loading;
+            btn.classList.toggle('loading', loading);
+        }
+
+        // API calls
+        async function api(url, body) {
+            const resp = await fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json; charset=UTF-8' },
+                body: body ? JSON.stringify(body) : undefined
+            });
+            return await resp.json();
+        }
+
+        async function doWrite() {
+            const btn = event.target;
+            setLoading(btn, true);
+            hideOutput('writeOutput');
+            try {
+                const res = await api('/api/write');
+                showOutput('writeOutput', res.message, !res.success);
+                toast(res.message, res.success ? 'success' : 'error');
+            } catch (e) {
+                showOutput('writeOutput', '请求失败: ' + e.message, true);
+                toast('请求失败', 'error');
+            } finally {
+                setLoading(btn, false);
+            }
+        }
+
+        async function doRead() {
+            const btn = event.target;
+            setLoading(btn, true);
+            hideOutput('readOutput');
+            const path = document.getElementById('readPath').value.trim();
+            try {
+                const res = await api('/api/read', { path });
+                showOutput('readOutput', res.message, !res.success);
+                toast(res.message, res.success ? 'success' : 'error');
+            } catch (e) {
+                showOutput('readOutput', '请求失败: ' + e.message, true);
+                toast('请求失败', 'error');
+            } finally {
+                setLoading(btn, false);
+            }
+        }
+
+        async function doTransfer() {
+            const btn = event.target;
+            setLoading(btn, true);
+            hideOutput('transferOutput');
+            const source = document.getElementById('transferSource').value.trim();
+            const target = document.getElementById('transferTarget').value.trim();
+            if (!source || !target) {
+                showOutput('transferOutput', '请填写源路径和目标路径', true);
+                setLoading(btn, false);
+                return;
+            }
+            try {
+                const res = await api('/api/transfer', { source, target });
+                showOutput('transferOutput', res.message, !res.success);
+                toast(res.message, res.success ? 'success' : 'error');
+            } catch (e) {
+                showOutput('transferOutput', '请求失败: ' + e.message, true);
+                toast('请求失败', 'error');
+            } finally {
+                setLoading(btn, false);
+            }
+        }
+
+        async function doDelete() {
+            const btn = event.target;
+            setLoading(btn, true);
+            hideOutput('deleteOutput');
+            const path = document.getElementById('deletePath').value.trim();
+            if (!path) {
+                showOutput('deleteOutput', '请填写文件路径', true);
+                setLoading(btn, false);
+                return;
+            }
+            try {
+                const res = await api('/api/delete', { path });
+                showOutput('deleteOutput', res.message, !res.success);
+                toast(res.message, res.success ? 'success' : 'error');
+            } catch (e) {
+                showOutput('deleteOutput', '请求失败: ' + e.message, true);
+                toast('请求失败', 'error');
+            } finally {
+                setLoading(btn, false);
+            }
+        }
+
+        async function doDraw() {
+            const btn = event.target;
+            setLoading(btn, true);
+            const output = document.getElementById('drawOutput');
+            output.className = 'art-output';
+            const text = document.getElementById('drawText').value.trim();
+            if (!text) {
+                output.textContent = '请输入要绘制的文字';
+                output.className = 'art-output visible';
+                setLoading(btn, false);
+                return;
+            }
+            try {
+                const res = await api('/api/draw', { text });
+                if (res.success) {
+                    output.textContent = res.art;
+                    output.className = 'art-output visible';
+                    toast('字符画生成成功', 'success');
+                } else {
+                    output.textContent = res.message;
+                    output.className = 'art-output visible';
+                    toast(res.message, 'error');
+                }
+            } catch (e) {
+                output.textContent = '请求失败: ' + e.message;
+                output.className = 'art-output visible';
+                toast('请求失败', 'error');
+            } finally {
+                setLoading(btn, false);
+            }
+        }
+
+        // Enter key support
+        document.querySelectorAll('input').forEach(input => {
+            input.addEventListener('keydown', e => {
+                if (e.key === 'Enter') {
+                    const btn = input.closest('.card').querySelector('.btn');
+                    if (btn) btn.click();
+                }
+            });
+        });
+    </script>
+</body>
+</html>

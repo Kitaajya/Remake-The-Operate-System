@@ -1,0 +1,377 @@
+/* ===== ESPORT PLANT - Cyberpunk Theme ===== */
+
+.root {
+    -fx-base: #0a0a12;
+    -fx-background: #0a0a12;
+    -fx-control-inner-background: #0c0c1d;
+    -fx-accent: #00ffff;
+    -fx-focus-color: #00ffff;
+    -fx-faint-focus-color: rgba(0,255,255,0.1);
+    -fx-font-family: "Consolas", "Courier New", monospace;
+    -fx-font-size: 13px;
+    -fx-text-fill: #e0e0f0;
+}
+
+/* ===== SIDEBAR ===== */
+.sidebar {
+    -fx-background-color: #0c0c1d;
+    -fx-border-color: #1a1a3a;
+    -fx-border-width: 0 1 0 0;
+}
+
+.sidebar-title {
+    -fx-font-size: 18px;
+    -fx-text-fill: #00ffff;
+    -fx-font-weight: bold;
+    -fx-padding: 20 0 0 0;
+}
+
+.sidebar-ver {
+    -fx-font-size: 10px;
+    -fx-text-fill: #5a5a8a;
+}
+
+.nav-btn {
+    -fx-background-color: transparent;
+    -fx-text-fill: #6a6a8a;
+    -fx-font-size: 13px;
+    -fx-padding: 10 20;
+    -fx-alignment: CENTER_LEFT;
+    -fx-background-radius: 0;
+    -fx-border-width: 0 0 0 2;
+    -fx-border-color: transparent;
+    -fx-cursor: hand;
+    -fx-font-family: "Consolas", monospace;
+}
+
+.nav-btn:hover {
+    -fx-background-color: rgba(0,255,255,0.05);
+    -fx-text-fill: #e0e0f0;
+}
+
+.nav-btn-active {
+    -fx-background-color: rgba(0,255,255,0.08);
+    -fx-text-fill: #00ffff;
+    -fx-border-color: #00ffff;
+}
+
+.nav-section {
+    -fx-font-size: 9px;
+    -fx-text-fill: #3a3a6a;
+    -fx-padding: 12 20 4 20;
+    -fx-text-transform: uppercase;
+}
+
+/* ===== CONTENT ===== */
+.content-area {
+    -fx-background-color: #0a0a12;
+}
+
+/* ===== CARDS ===== */
+.stat-card {
+    -fx-background-color: #0c0c1d;
+    -fx-border-color: #1a1a3a;
+    -fx-border-width: 1;
+    -fx-background-radius: 6;
+    -fx-border-radius: 6;
+    -fx-padding: 16;
+}
+
+.stat-label {
+    -fx-font-size: 10px;
+    -fx-text-fill: #5a5a8a;
+}
+
+.stat-value {
+    -fx-font-size: 28px;
+    -fx-font-weight: bold;
+    -fx-padding: 4 0;
+}
+
+.stat-sub {
+    -fx-font-size: 10px;
+    -fx-text-fill: #3a3a6a;
+}
+
+/* ===== PANELS ===== */
+.panel {
+    -fx-background-color: #0c0c1d;
+    -fx-border-color: #1a1a3a;
+    -fx-border-width: 1;
+    -fx-background-radius: 6;
+    -fx-border-radius: 6;
+}
+
+.panel-header {
+    -fx-padding: 12 16;
+    -fx-border-color: transparent transparent #1a1a3a transparent;
+    -fx-border-width: 0 0 1 0;
+}
+
+.panel-title {
+    -fx-font-size: 13px;
+    -fx-text-fill: #00ffff;
+    -fx-font-weight: bold;
+}
+
+.panel-body {
+    -fx-padding: 16;
+}
+
+/* ===== BUTTONS ===== */
+.btn {
+    -fx-background-color: transparent;
+    -fx-border-color: #00ffff;
+    -fx-border-width: 1;
+    -fx-text-fill: #00ffff;
+    -fx-font-size: 12px;
+    -fx-padding: 7 16;
+    -fx-background-radius: 4;
+    -fx-border-radius: 4;
+    -fx-cursor: hand;
+    -fx-font-family: "Consolas", monospace;
+}
+
+.btn:hover {
+    -fx-background-color: rgba(0,255,255,0.1);
+}
+
+.btn-green {
+    -fx-border-color: #00ff88;
+    -fx-text-fill: #00ff88;
+}
+.btn-green:hover { -fx-background-color: rgba(0,255,132,0.1); }
+
+.btn-red {
+    -fx-border-color: #ff3366;
+    -fx-text-fill: #ff3366;
+}
+.btn-red:hover { -fx-background-color: rgba(255,51,102,0.1); }
+
+.btn-purple {
+    -fx-border-color: #7b2fff;
+    -fx-text-fill: #7b2fff;
+}
+.btn-purple:hover { -fx-background-color: rgba(123,47,255,0.1); }
+
+.btn-yellow {
+    -fx-border-color: #ffcc00;
+    -fx-text-fill: #ffcc00;
+}
+.btn-yellow:hover { -fx-background-color: rgba(255,204,0,0.1); }
+
+.btn-sm {
+    -fx-padding: 4 10;
+    -fx-font-size: 11px;
+}
+
+/* ===== INPUTS ===== */
+.text-field, .text-area {
+    -fx-background-color: #060610;
+    -fx-border-color: #1a1a3a;
+    -fx-border-width: 1;
+    -fx-background-radius: 4;
+    -fx-border-radius: 4;
+    -fx-text-fill: #e0e0f0;
+    -fx-padding: 8 10;
+    -fx-font-family: "Consolas", monospace;
+    -fx-font-size: 12px;
+}
+
+.text-field:focused, .text-area:focused {
+    -fx-border-color: #00ffff;
+    -fx-effect: dropshadow(gaussian, rgba(0,255,255,0.15), 8, 0, 0, 0);
+}
+
+.text-area {
+    -fx-control-inner-background: #060610;
+}
+
+.label-dim {
+    -fx-font-size: 10px;
+    -fx-text-fill: #5a5a8a;
+}
+
+/* ===== TABLE ===== */
+.table-view {
+    -fx-background-color: #0c0c1d;
+    -fx-border-color: #1a1a3a;
+    -fx-table-cell-border-color: #1a1a3a;
+}
+
+.table-view .column-header-background {
+    -fx-background-color: #0c0c1d;
+}
+
+.table-view .column-header {
+    -fx-background-color: #0c0c1d;
+    -fx-border-color: transparent transparent #1a1a3a transparent;
+}
+
+.table-view .column-header .label {
+    -fx-text-fill: #5a5a8a;
+    -fx-font-size: 11px;
+    -fx-font-weight: normal;
+}
+
+.table-view .table-row-cell {
+    -fx-background-color: #0c0c1d;
+    -fx-border-color: transparent transparent #1a1a3a transparent;
+}
+
+.table-view .table-row-cell:selected {
+    -fx-background-color: rgba(0,255,255,0.1);
+}
+
+.table-view .table-cell {
+    -fx-text-fill: #e0e0f0;
+    -fx-font-size: 12px;
+}
+
+.table-view .table-row-cell:empty {
+    -fx-background-color: #0c0c1d;
+}
+
+/* ===== LOG / OUTPUT ===== */
+.log-box {
+    -fx-background-color: #060610;
+    -fx-border-color: #1a1a3a;
+    -fx-border-width: 1;
+    -fx-background-radius: 4;
+    -fx-border-radius: 4;
+    -fx-padding: 10;
+    -fx-font-family: "Consolas", monospace;
+    -fx-font-size: 11px;
+}
+
+.log-info { -fx-text-fill: #00ffff; }
+.log-warn { -fx-text-fill: #ffcc00; }
+.log-error { -fx-text-fill: #ff3366; }
+.log-success { -fx-text-fill: #00ff88; }
+.log-dim { -fx-text-fill: #3a3a6a; }
+
+/* ===== ART OUTPUT ===== */
+.art-box {
+    -fx-background-color: #060610;
+    -fx-border-color: #1a1a3a;
+    -fx-border-width: 1;
+    -fx-background-radius: 4;
+    -fx-border-radius: 4;
+    -fx-padding: 12;
+    -fx-font-family: "Consolas", monospace;
+    -fx-font-size: 8px;
+    -fx-text-fill: #00ffff;
+    -fx-wrap-text: false;
+}
+
+/* ===== FILE ITEM ===== */
+.file-item {
+    -fx-padding: 8 12;
+    -fx-border-color: transparent transparent #1a1a3a transparent;
+    -fx-border-width: 0 0 1 0;
+    -fx-cursor: hand;
+}
+
+.file-item:hover {
+    -fx-background-color: rgba(0,255,255,0.03);
+}
+
+/* ===== SCROLLBAR ===== */
+.scroll-bar {
+    -fx-background-color: #0a0a12;
+}
+
+.scroll-bar .thumb {
+    -fx-background-color: #252555;
+    -fx-background-radius: 4;
+}
+
+.scroll-bar .thumb:hover {
+    -fx-background-color: #353575;
+}
+
+.scroll-bar .increment-button, .scroll-bar .decrement-button {
+    -fx-background-color: transparent;
+    -fx-padding: 0;
+}
+
+.scroll-bar .increment-arrow, .scroll-bar .decrement-arrow {
+    -fx-shape: "";
+    -fx-padding: 0;
+}
+
+/* ===== STATUS DOT ===== */
+.dot-green {
+    -fx-fill: #00ff88;
+}
+
+.dot-red {
+    -fx-fill: #ff3366;
+}
+
+/* ===== BADGE ===== */
+.badge {
+    -fx-padding: 2 8;
+    -fx-background-radius: 3;
+    -fx-font-size: 10px;
+}
+
+.badge-accent {
+    -fx-text-fill: #00ffff;
+    -fx-border-color: #00ffff;
+    -fx-border-width: 1;
+    -fx-background-color: rgba(0,255,255,0.08);
+}
+
+.badge-yellow {
+    -fx-text-fill: #ffcc00;
+    -fx-border-color: #ffcc00;
+    -fx-border-width: 1;
+    -fx-background-color: rgba(255,204,0,0.08);
+}
+
+.badge-green {
+    -fx-text-fill: #00ff88;
+    -fx-border-color: #00ff88;
+    -fx-border-width: 1;
+    -fx-background-color: rgba(0,255,132,0.08);
+}
+
+.badge-red {
+    -fx-text-fill: #ff3366;
+    -fx-border-color: #ff3366;
+    -fx-border-width: 1;
+    -fx-background-color: rgba(255,51,102,0.08);
+}
+
+/* ===== SEPARATOR ===== */
+.separator .line {
+    -fx-border-color: #1a1a3a;
+}
+
+/* ===== TAB PANE ===== */
+.tab-pane .tab-header-area .tab-header-background {
+    -fx-background-color: #0c0c1d;
+}
+
+.tab-pane .tab {
+    -fx-background-color: transparent;
+    -fx-border-color: #1a1a3a;
+}
+
+.tab-pane .tab:selected {
+    -fx-background-color: rgba(0,255,255,0.08);
+}
+
+.tab-pane .tab .tab-label {
+    -fx-text-fill: #6a6a8a;
+    -fx-font-size: 12px;
+}
+
+.tab-pane .tab:selected .tab-label {
+    -fx-text-fill: #00ffff;
+}
+
+.tab-pane .tab-header-area {
+    -fx-padding: 0 0 0 0;
+}

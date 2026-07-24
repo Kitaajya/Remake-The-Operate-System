@@ -1,27 +1,19 @@
 package org.designer.esportplant;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import ChooseProgrammer.ChooseProgrammerToUseMySystemOperation;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-
-import java.io.IOException;
 
 @SpringBootApplication
 public class EsportPlantApplication {
 
-    private static final Logger log = LoggerFactory.getLogger(EsportPlantApplication.class);
-
-    public static void main(String[] args) throws IOException {
-
-
-        try{
-            SpringApplication.run(EsportPlantApplication.class, args);
-            WriteFile writeFile = new WriteFile();
-            writeFile.writeFunction();
-        }catch (Exception e){
-            log.error("方法有异常！");
-        }
+    public static void main(String[] args) {
+        SpringApplication.run(EsportPlantApplication.class, args);
+        ChooseProgrammerToUseMySystemOperation.choice();
+        /*
+        * 前端主页	http://localhost:8082 (http://localhost:8082)
+          后台管理	http://localhost:8082/admin.html (http://localhost:8082/admin.html)
+        * */
     }
 
 }

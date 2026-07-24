@@ -1,0 +1,796 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EsportPlant - 后台管理</title>
+    <style>
+        *{margin:0;padding:0;box-sizing:border-box}
+        @keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
+        @keyframes scanline{0%{top:-100%}100%{top:100%}}
+        @keyframes glitch{0%,100%{text-shadow:2px 0 #0ff,-2px 0 #f0f}25%{text-shadow:-2px -2px #0ff,2px 2px #f0f}50%{text-shadow:2px 2px #0ff,-2px -2px #f0f}75%{text-shadow:-2px 0 #0ff,2px 0 #f0f}}
+        @keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+        @keyframes borderPulse{0%,100%{border-color:var(--border)}50%{border-color:var(--accent)}}
+        @keyframes slideIn{from{transform:translateX(-100%)}to{transform:translateX(0)}}
+        @keyframes typing{from{width:0}to{width:100%}}
+
+        :root{
+            --bg:#060610;--surface:#0c0c1d;--surface2:#10102a;--surface3:#141438;
+            --border:#1a1a3a;--border2:#252555;
+            --accent:#00ffff;--accent2:#ff00ff;--accent3:#7b2fff;
+            --green:#00ff88;--red:#ff3366;--yellow:#ffcc00;--orange:#ff8800;
+            --text:#e0e0f0;--text-dim:#5a5a8a;--text-muted:#3a3a6a;
+        }
+
+        body{font-family:'Consolas','Courier New',monospace;background:var(--bg);color:var(--text);min-height:100vh;display:flex}
+        body::before{content:'';position:fixed;top:0;left:0;right:0;bottom:0;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,255,255,.01) 2px,rgba(0,255,255,.01) 4px);pointer-events:none;z-index:9999}
+        .scanline{position:fixed;top:-100%;left:0;right:0;height:3px;background:linear-gradient(90deg,transparent,rgba(0,255,255,.2),transparent);animation:scanline 8s linear infinite;pointer-events:none;z-index:9998}
+
+        /* ===== SIDEBAR ===== */
+        .sidebar{width:240px;min-height:100vh;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;position:fixed;top:0;left:0;bottom:0;z-index:100;transition:transform .3s}
+        .sidebar-header{padding:20px;border-bottom:1px solid var(--border);text-align:center}
+        .sidebar-header h1{font-size:1.1em;color:var(--accent);animation:glitch 4s infinite;letter-spacing:3px}
+        .sidebar-header .ver{font-size:.65em;color:var(--text-dim);margin-top:4px;letter-spacing:2px}
+        .sidebar-nav{flex:1;padding:12px 0}
+        .nav-section{padding:8px 20px;font-size:.6em;color:var(--text-muted);text-transform:uppercase;letter-spacing:2px;margin-top:8px}
+        .nav-item{display:flex;align-items:center;gap:10px;padding:10px 20px;cursor:pointer;color:var(--text-dim);font-size:.8em;transition:all .2s;border-left:2px solid transparent;letter-spacing:1px}
+        .nav-item:hover{background:rgba(0,255,255,.05);color:var(--text);border-left-color:var(--accent)}
+        .nav-item.active{background:rgba(0,255,255,.08);color:var(--accent);border-left-color:var(--accent)}
+        .nav-item .icon{width:20px;text-align:center}
+        .sidebar-footer{padding:16px 20px;border-top:1px solid var(--border);font-size:.6em;color:var(--text-muted);letter-spacing:1px}
+        .sidebar-footer .dot{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--green);margin-right:6px;animation:pulse 2s infinite}
+
+        /* ===== MAIN ===== */
+        .main{margin-left:240px;flex:1;min-height:100vh;display:flex;flex-direction:column}
+        .topbar{height:50px;background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 24px;position:sticky;top:0;z-index:50}
+        .topbar .breadcrumb{font-size:.8em;color:var(--text-dim);letter-spacing:1px}
+        .topbar .breadcrumb span{color:var(--accent)}
+        .topbar .info{display:flex;gap:16px;font-size:.7em;color:var(--text-dim)}
+        .topbar .info .live{color:var(--green)}
+
+        .content{flex:1;padding:24px;overflow-y:auto}
+
+        /* ===== CARDS ===== */
+        .stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-bottom:24px}
+        .stat-card{background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:20px;animation:fadeIn .4s ease forwards;opacity:0;position:relative;overflow:hidden}
+        .stat-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px}
+        .stat-card:nth-child(1)::before{background:linear-gradient(90deg,var(--accent),transparent)}
+        .stat-card:nth-child(2)::before{background:linear-gradient(90deg,var(--green),transparent)}
+        .stat-card:nth-child(3)::before{background:linear-gradient(90deg,var(--accent2),transparent)}
+        .stat-card:nth-child(4)::before{background:linear-gradient(90deg,var(--yellow),transparent)}
+        .stat-card:nth-child(5)::before{background:linear-gradient(90deg,var(--accent3),transparent)}
+        .stat-card:nth-child(1){animation-delay:.05s}.stat-card:nth-child(2){animation-delay:.1s}.stat-card:nth-child(3){animation-delay:.15s}.stat-card:nth-child(4){animation-delay:.2s}.stat-card:nth-child(5){animation-delay:.25s}
+        .stat-card .label{font-size:.65em;color:var(--text-dim);text-transform:uppercase;letter-spacing:2px}
+        .stat-card .value{font-size:1.8em;margin:8px 0 4px;font-weight:bold}
+        .stat-card:nth-child(1) .value{color:var(--accent)}.stat-card:nth-child(2) .value{color:var(--green)}.stat-card:nth-child(3) .value{color:var(--accent2)}.stat-card:nth-child(4) .value{color:var(--yellow)}.stat-card:nth-child(5) .value{color:var(--accent3)}
+        .stat-card .sub{font-size:.65em;color:var(--text-muted)}
+
+        /* ===== PANELS ===== */
+        .panel{background:var(--surface);border:1px solid var(--border);border-radius:6px;animation:fadeIn .5s ease forwards;opacity:0;margin-bottom:20px}
+        .panel:nth-child(n){animation-delay:.1s}
+        .panel-header{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+        .panel-header h2{font-size:.9em;color:var(--accent);letter-spacing:2px}
+        .panel-header .actions{display:flex;gap:8px}
+        .panel-body{padding:20px}
+
+        /* ===== TABLE ===== */
+        .table-wrap{overflow-x:auto}
+        table{width:100%;border-collapse:collapse;font-size:.8em}
+        th{text-align:left;padding:10px 12px;color:var(--text-dim);font-weight:normal;text-transform:uppercase;letter-spacing:1px;font-size:.75em;border-bottom:1px solid var(--border2);white-space:nowrap}
+        td{padding:10px 12px;border-bottom:1px solid var(--border);white-space:nowrap}
+        tr:hover td{background:rgba(0,255,255,.03)}
+        .badge{display:inline-block;padding:2px 8px;border-radius:3px;font-size:.75em;border:1px solid}
+        .badge-online{color:var(--green);border-color:var(--green);background:rgba(0,255,132,.08)}
+        .badge-id{color:var(--accent);border-color:var(--accent);background:rgba(0,255,255,.08)}
+        .badge-rank{color:var(--yellow);border-color:var(--yellow);background:rgba(255,204,0,.08)}
+
+        /* ===== FORMS ===== */
+        .form-row{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px}
+        .form-group{display:flex;flex-direction:column;gap:4px}
+        .form-group.full{grid-column:1/-1}
+        label{font-size:.7em;color:var(--text-dim);text-transform:uppercase;letter-spacing:1px}
+        input[type="text"],input[type="number"],textarea,select{background:var(--bg);border:1px solid var(--border);border-radius:4px;padding:8px 12px;color:var(--text);font-family:inherit;font-size:.85em;outline:none;transition:border-color .2s}
+        input:focus,textarea:focus,select:focus{border-color:var(--accent);box-shadow:0 0 8px rgba(0,255,255,.1)}
+        textarea{resize:vertical;min-height:80px}
+
+        /* ===== BUTTONS ===== */
+        .btn{display:inline-flex;align-items:center;gap:6px;padding:7px 16px;border:1px solid var(--accent);background:transparent;color:var(--accent);font-family:inherit;font-size:.75em;letter-spacing:1px;cursor:pointer;border-radius:4px;transition:all .2s;text-transform:uppercase;white-space:nowrap}
+        .btn:hover{background:rgba(0,255,255,.1);box-shadow:0 0 12px rgba(0,255,255,.15)}
+        .btn:active{transform:scale(.97)}
+        .btn:disabled{opacity:.3;cursor:not-allowed}
+        .btn-sm{padding:4px 10px;font-size:.7em}
+        .btn-green{border-color:var(--green);color:var(--green)}
+        .btn-green:hover{background:rgba(0,255,132,.1);box-shadow:0 0 12px rgba(0,255,132,.15)}
+        .btn-red{border-color:var(--red);color:var(--red)}
+        .btn-red:hover{background:rgba(255,51,102,.1);box-shadow:0 0 12px rgba(255,51,102,.15)}
+        .btn-purple{border-color:var(--accent3);color:var(--accent3)}
+        .btn-purple:hover{background:rgba(123,47,255,.1);box-shadow:0 0 12px rgba(123,47,255,.15)}
+        .btn-yellow{border-color:var(--yellow);color:var(--yellow)}
+        .btn-yellow:hover{background:rgba(255,204,0,.1);box-shadow:0 0 12px rgba(255,204,0,.15)}
+        .btn-group{display:flex;gap:8px;flex-wrap:wrap}
+
+        /* ===== MODAL ===== */
+        .modal-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.7);z-index:200;display:none;align-items:center;justify-content:center;backdrop-filter:blur(4px)}
+        .modal-overlay.show{display:flex}
+        .modal{background:var(--surface);border:1px solid var(--border);border-radius:8px;width:480px;max-width:90vw;animation:fadeIn .2s ease}
+        .modal-header{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+        .modal-header h3{font-size:.9em;color:var(--accent);letter-spacing:1px}
+        .modal-close{background:none;border:none;color:var(--text-dim);font-size:1.2em;cursor:pointer;padding:4px 8px}
+        .modal-close:hover{color:var(--red)}
+        .modal-body{padding:20px}
+        .modal-footer{padding:12px 20px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:8px}
+
+        /* ===== LOGS ===== */
+        .log-box{background:var(--bg);border:1px solid var(--border);border-radius:4px;padding:12px;font-size:.75em;max-height:320px;overflow-y:auto;line-height:1.8;color:var(--text-dim)}
+        .log-line{border-bottom:1px solid rgba(255,255,255,.03);padding:2px 0}
+        .log-line .time{color:var(--text-muted);margin-right:8px}
+        .log-line .level-info{color:var(--accent)}
+        .log-line .level-warn{color:var(--yellow)}
+        .log-line .level-error{color:var(--red)}
+        .log-line .msg{color:var(--text)}
+
+        /* ===== TOAST ===== */
+        .toast{position:fixed;top:20px;right:20px;padding:12px 20px;border-radius:6px;font-family:inherit;font-size:.8em;z-index:9000;animation:fadeIn .3s ease;border:1px solid}
+        .toast.success{background:var(--surface);border-color:var(--green);color:var(--green)}
+        .toast.error{background:var(--surface);border-color:var(--red);color:var(--red)}
+        .toast.info{background:var(--surface);border-color:var(--accent);color:var(--accent)}
+
+        /* ===== PAGE SECTIONS ===== */
+        .page{display:none}
+        .page.active{display:block}
+
+        /* ===== SYS INFO ===== */
+        .info-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px}
+        .info-item{display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border);font-size:.8em}
+        .info-item .k{color:var(--text-dim)}
+        .info-item .v{color:var(--text)}
+
+        /* ===== FILE BROWSER ===== */
+        .file-item{display:flex;align-items:center;gap:12px;padding:10px 16px;border-bottom:1px solid var(--border);font-size:.8em;cursor:pointer;transition:background .2s}
+        .file-item:hover{background:rgba(0,255,255,.03)}
+        .file-item .fi-icon{font-size:1.2em;width:24px;text-align:center}
+        .file-item .fi-name{flex:1;color:var(--text)}
+        .file-item .fi-size{color:var(--text-dim);font-size:.85em}
+        .file-item .fi-date{color:var(--text-muted);font-size:.8em}
+
+        /* ===== EMPTY STATE ===== */
+        .empty{text-align:center;padding:40px;color:var(--text-muted);font-size:.85em}
+        .empty .icon{font-size:2em;margin-bottom:12px}
+
+        /* ===== ART OUTPUT ===== */
+        .art-box{background:var(--bg);border:1px solid var(--border);border-radius:4px;padding:16px;font-size:9px;line-height:9px;color:var(--accent);white-space:pre;overflow-x:auto;max-height:400px}
+    </style>
+</head>
+<body>
+    <div class="scanline"></div>
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <h1>ESPORT PLANT</h1>
+            <div class="ver">ADMIN CONSOLE v1.0</div>
+        </div>
+        <nav class="sidebar-nav">
+            <div class="nav-section">Overview</div>
+            <div class="nav-item active" data-page="dashboard">
+                <span class="icon">&#9673;</span> Dashboard
+            </div>
+
+            <div class="nav-section">Data</div>
+            <div class="nav-item" data-page="database">
+                <span class="icon">&#9776;</span> Database Manager
+            </div>
+            <div class="nav-item" data-page="files">
+                <span class="icon">&#128193;</span> File Manager
+            </div>
+
+            <div class="nav-section">Tools</div>
+            <div class="nav-item" data-page="art">
+                <span class="icon">&#127912;</span> Character Art
+            </div>
+
+            <div class="nav-section">System</div>
+            <div class="nav-item" data-page="sysinfo">
+                <span class="icon">&#9881;</span> System Info
+            </div>
+            <div class="nav-item" data-page="logs">
+                <span class="icon">&#128196;</span> Logs
+            </div>
+        </nav>
+        <div class="sidebar-footer">
+            <span class="dot"></span> SYSTEM OPERATIONAL
+        </div>
+    </aside>
+
+    <!-- MAIN -->
+    <div class="main">
+        <div class="topbar">
+            <div class="breadcrumb">ESPORTPLANT / <span id="pageTitle">Dashboard</span></div>
+            <div class="info">
+                <span class="live">&#9679; LIVE</span>
+                <span id="topClock"></span>
+            </div>
+        </div>
+
+        <div class="content">
+
+            <!-- ===== DASHBOARD ===== -->
+            <div class="page active" id="page-dashboard">
+                <div class="stat-grid">
+                    <div class="stat-card">
+                        <div class="label">DB Status</div>
+                        <div class="value" id="dbStatus">--</div>
+                        <div class="sub">MySQL Connection</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="label">DB Records</div>
+                        <div class="value" id="dbRecords">--</div>
+                        <div class="sub">e_table total rows</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="label">Files on Disk</div>
+                        <div class="value" id="fileCount">--</div>
+                        <div class="sub">D:\桌面\*.txt</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="label">JVM Memory</div>
+                        <div class="value" id="jvmMem">--</div>
+                        <div class="sub">Heap Used</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="label">Uptime</div>
+                        <div class="value" id="uptime">--</div>
+                        <div class="sub">Process Running</div>
+                    </div>
+                </div>
+
+                <div class="panel">
+                    <div class="panel-header">
+                        <h2>Quick Actions</h2>
+                    </div>
+                    <div class="panel-body">
+                        <div class="btn-group">
+                            <button class="btn" onclick="navTo('database')">Open Database</button>
+                            <button class="btn btn-green" onclick="navTo('files')">Open Files</button>
+                            <button class="btn btn-purple" onclick="navTo('art')">Character Art</button>
+                            <button class="btn btn-yellow" onclick="loadDashboard()">Refresh Stats</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="panel">
+                    <div class="panel-header">
+                        <h2>Recent Activity</h2>
+                    </div>
+                    <div class="panel-body">
+                        <div class="log-box" id="dashLog">
+                            <div class="empty"><div class="icon">&#128203;</div>No activity yet. Perform an action to see logs here.</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ===== DATABASE ===== -->
+            <div class="page" id="page-database">
+                <div class="panel">
+                    <div class="panel-header">
+                        <h2>e_table Records</h2>
+                        <div class="actions">
+                            <button class="btn btn-sm" onclick="loadDB()">Refresh</button>
+                            <button class="btn btn-sm btn-green" onclick="showAddModal()">+ Add Record</button>
+                        </div>
+                    </div>
+                    <div class="panel-body">
+                        <div class="table-wrap">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Name</th>
+                                        <th>Position</th>
+                                        <th>Game Name</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="dbTableBody">
+                                    <tr><td colspan="5" class="empty">Loading...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="panel">
+                    <div class="panel-header">
+                        <h2>Write to File</h2>
+                    </div>
+                    <div class="panel-body">
+                        <p style="font-size:.8em;color:var(--text-dim);margin-bottom:12px">Query all records from e_table and write them to <code style="color:var(--accent)">D:\桌面\NameCodeForE_Plant.txt</code>, then insert a new record.</p>
+                        <button class="btn btn-yellow" onclick="doWrite()" id="btnWrite">Execute WriteOperation</button>
+                        <div id="writeResult" style="margin-top:12px;font-size:.8em"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ===== FILES ===== -->
+            <div class="page" id="page-files">
+                <div class="panel">
+                    <div class="panel-header">
+                        <h2>File Browser</h2>
+                        <div class="actions">
+                            <button class="btn btn-sm" onclick="browseDir()">Browse</button>
+                        </div>
+                    </div>
+                    <div class="panel-body">
+                        <div class="form-row">
+                            <div class="form-group full">
+                                <label>Directory Path</label>
+                                <div style="display:flex;gap:8px">
+                                    <input type="text" id="browsePath" value="D:\桌面" style="flex:1">
+                                    <button class="btn btn-sm" onclick="browseDir()">Go</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div id="fileList" style="margin-top:12px;border:1px solid var(--border);border-radius:4px;max-height:300px;overflow-y:auto">
+                            <div class="empty"><div class="icon">&#128193;</div>Click Browse to list files</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
+                    <div class="panel">
+                        <div class="panel-header">
+                            <h2>Read File</h2>
+                        </div>
+                        <div class="panel-body">
+                            <div class="form-group" style="margin-bottom:12px">
+                                <label>File Path</label>
+                                <input type="text" id="readFilePath" placeholder="D:\桌面\NameCodeForE_Plant.txt">
+                            </div>
+                            <button class="btn" onclick="doRead()">Read</button>
+                            <div class="log-box" id="readResult" style="margin-top:12px;display:none"></div>
+                        </div>
+                    </div>
+
+                    <div class="panel">
+                        <div class="panel-header">
+                            <h2>Move File</h2>
+                        </div>
+                        <div class="panel-body">
+                            <div class="form-group" style="margin-bottom:10px">
+                                <label>Source</label>
+                                <input type="text" id="moveSource" placeholder="C:\source\file.txt">
+                            </div>
+                            <div class="form-group" style="margin-bottom:12px">
+                                <label>Target</label>
+                                <input type="text" id="moveTarget" placeholder="D:\target\file.txt">
+                            </div>
+                            <button class="btn btn-purple" onclick="doMove()">Move</button>
+                            <div id="moveResult" style="margin-top:12px;font-size:.8em"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="panel">
+                    <div class="panel-header">
+                        <h2>Delete File (Recycle Bin)</h2>
+                    </div>
+                    <div class="panel-body">
+                        <div class="form-row">
+                            <div class="form-group full">
+                                <label>File Path</label>
+                                <div style="display:flex;gap:8px">
+                                    <input type="text" id="delFilePath" placeholder="C:\path\to\file.txt" style="flex:1">
+                                    <button class="btn btn-sm btn-red" onclick="doDelete()">Delete</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div id="delResult" style="margin-top:8px;font-size:.8em"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ===== ART ===== -->
+            <div class="page" id="page-art">
+                <div class="panel">
+                    <div class="panel-header">
+                        <h2>Chinese Character Art Generator</h2>
+                    </div>
+                    <div class="panel-body">
+                        <div class="form-row">
+                            <div class="form-group full">
+                                <label>Input Text</label>
+                                <div style="display:flex;gap:8px">
+                                    <input type="text" id="artText" value="电竞之王" style="flex:1">
+                                    <button class="btn btn-purple" onclick="doArt()">Generate</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div id="artResult" class="art-box" style="margin-top:16px;min-height:120px;display:none"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ===== SYSINFO ===== -->
+            <div class="page" id="page-sysinfo">
+                <div class="panel">
+                    <div class="panel-header">
+                        <h2>System Information</h2>
+                        <div class="actions">
+                            <button class="btn btn-sm" onclick="loadSysInfo()">Refresh</button>
+                        </div>
+                    </div>
+                    <div class="panel-body">
+                        <div class="info-grid" id="sysInfoGrid">
+                            <div class="empty"><div class="icon">&#9881;</div>Loading system info...</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ===== LOGS ===== -->
+            <div class="page" id="page-logs">
+                <div class="panel">
+                    <div class="panel-header">
+                        <h2>Application Logs</h2>
+                        <div class="actions">
+                            <button class="btn btn-sm" onclick="loadLogs()">Refresh</button>
+                            <button class="btn btn-sm btn-red" onclick="clearDashLog()">Clear</button>
+                        </div>
+                    </div>
+                    <div class="panel-body">
+                        <div class="log-box" id="appLogs">
+                            <div class="empty"><div class="icon">&#128196;</div>No logs yet.</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- ADD RECORD MODAL -->
+    <div class="modal-overlay" id="addModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>Add Record to e_table</h3>
+                <button class="modal-close" onclick="closeAddModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group" style="margin-bottom:12px">
+                    <label>Name</label>
+                    <input type="text" id="addName" placeholder="e.g. 唐山神医">
+                </div>
+                <div class="form-group" style="margin-bottom:12px">
+                    <label>Position (段位)</label>
+                    <input type="number" id="addPosition" placeholder="e.g. 5" min="0">
+                </div>
+                <div class="form-group">
+                    <label>Game Name (游戏名)</label>
+                    <input type="text" id="addGameName" placeholder="e.g. 电竞达人">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-sm" onclick="closeAddModal()">Cancel</button>
+                <button class="btn btn-sm btn-green" onclick="submitAdd()">Add</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- DELETE CONFIRM MODAL -->
+    <div class="modal-overlay" id="delConfirmModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>Confirm Delete</h3>
+                <button class="modal-close" onclick="closeDelConfirm()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p style="font-size:.85em;color:var(--text-dim)">Are you sure you want to delete record <span id="delConfirmId" style="color:var(--red)">#?</span></p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-sm" onclick="closeDelConfirm()">Cancel</button>
+                <button class="btn btn-sm btn-red" onclick="confirmDelete()">Delete</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    // ===== GLOBALS =====
+    let currentDelId = null;
+    let activityLog = [];
+    let appLogLines = [];
+
+    function addLog(msg, level) {
+        level = level || 'info';
+        const now = new Date().toLocaleTimeString('zh-CN',{hour12:false});
+        const entry = {time:now, level:level, msg:msg};
+        activityLog.unshift(entry);
+        if (activityLog.length > 50) activityLog.pop();
+        renderDashLog();
+        appLogLines.unshift(entry);
+        if (appLogLines.length > 200) appLogLines.pop();
+        renderAppLogs();
+    }
+
+    function renderDashLog() {
+        const el = document.getElementById('dashLog');
+        if (!activityLog.length) { el.innerHTML = '<div class="empty"><div class="icon">&#128203;</div>No activity yet.</div>'; return; }
+        el.innerHTML = activityLog.slice(0,10).map(l =>
+            `<div class="log-line"><span class="time">${l.time}</span><span class="level-${l.level}">${l.msg}</span></div>`
+        ).join('');
+    }
+
+    function renderAppLogs() {
+        const el = document.getElementById('appLogs');
+        if (!appLogLines.length) { el.innerHTML = '<div class="empty"><div class="icon">&#128196;</div>No logs yet.</div>'; return; }
+        el.innerHTML = appLogLines.map(l =>
+            `<div class="log-line"><span class="time">${l.time}</span><span class="level-${l.level}">${l.msg}</span></div>`
+        ).join('');
+    }
+
+    function clearDashLog() { activityLog = []; renderDashLog(); appLogLines = []; renderAppLogs(); }
+
+    // ===== TOAST =====
+    function toast(msg, type) {
+        const el = document.createElement('div');
+        el.className = 'toast ' + (type||'info');
+        el.textContent = msg;
+        document.body.appendChild(el);
+        setTimeout(() => el.remove(), 3000);
+    }
+
+    // ===== NAV =====
+    document.querySelectorAll('.nav-item').forEach(item => {
+        item.addEventListener('click', () => navTo(item.dataset.page));
+    });
+
+    function navTo(page) {
+        document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+        document.querySelector(`.nav-item[data-page="${page}"]`).classList.add('active');
+        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+        document.getElementById('page-' + page).classList.add('active');
+        const titles = {dashboard:'Dashboard',database:'Database Manager',files:'File Manager',art:'Character Art',sysinfo:'System Info',logs:'Logs'};
+        document.getElementById('pageTitle').textContent = titles[page] || page;
+        if (page === 'dashboard') loadDashboard();
+        if (page === 'database') loadDB();
+        if (page === 'files') browseDir();
+        if (page === 'sysinfo') loadSysInfo();
+    }
+
+    // ===== CLOCK =====
+    function updateClock() {
+        document.getElementById('topClock').textContent = new Date().toLocaleString('zh-CN',{hour12:false});
+    }
+    updateClock(); setInterval(updateClock, 1000);
+
+    // ===== API =====
+    async function api(url, body) {
+        const opts = { method:'POST', headers:{'Content-Type':'application/json; charset=UTF-8'} };
+        if (body !== undefined) opts.body = JSON.stringify(body);
+        const r = await fetch(url, opts);
+        return await r.json();
+    }
+
+    async function apiGet(url) {
+        const r = await fetch(url);
+        return await r.json();
+    }
+
+    // ===== DASHBOARD =====
+    async function loadDashboard() {
+        try {
+            const info = await apiGet('/api/system/info');
+            document.getElementById('dbStatus').textContent = info.dbConnected ? 'ONLINE' : 'OFFLINE';
+            document.getElementById('dbStatus').style.color = info.dbConnected ? 'var(--green)' : 'var(--red)';
+            document.getElementById('dbRecords').textContent = info.dbRecords !== undefined ? info.dbRecords : '--';
+            document.getElementById('fileCount').textContent = info.fileCount !== undefined ? info.fileCount : '--';
+            if (info.jvmMemUsed) document.getElementById('jvmMem').textContent = info.jvmMemUsed;
+            if (info.uptime) document.getElementById('uptime').textContent = info.uptime;
+            addLog('Dashboard refreshed', 'info');
+        } catch(e) {
+            document.getElementById('dbStatus').textContent = 'ERROR';
+            document.getElementById('dbStatus').style.color = 'var(--red)';
+            addLog('Dashboard load failed: ' + e.message, 'error');
+        }
+    }
+
+    // ===== DATABASE =====
+    async function loadDB() {
+        try {
+            const data = await apiGet('/api/db/records');
+            const tbody = document.getElementById('dbTableBody');
+            if (!data.records || !data.records.length) {
+                tbody.innerHTML = '<tr><td colspan="5" class="empty">No records found</td></tr>';
+                return;
+            }
+            tbody.innerHTML = data.records.map(r =>
+                `<tr>
+                    <td><span class="badge badge-id">#${r.id}</span></td>
+                    <td>${esc(r.name)}</td>
+                    <td><span class="badge badge-rank">Lv.${r.position}</span></td>
+                    <td>${esc(r.gameName)}</td>
+                    <td><button class="btn btn-sm btn-red" onclick="showDelConfirm(${r.id})">Delete</button></td>
+                </tr>`
+            ).join('');
+            addLog(`Loaded ${data.records.length} records from e_table`, 'info');
+            toast(`Loaded ${data.records.length} records`, 'success');
+        } catch(e) {
+            document.getElementById('dbTableBody').innerHTML = `<tr><td colspan="5" class="empty">Error: ${esc(e.message)}</td></tr>`;
+            addLog('DB load failed: ' + e.message, 'error');
+            toast('Failed to load records', 'error');
+        }
+    }
+
+    function showAddModal() { document.getElementById('addModal').classList.add('show'); }
+    function closeAddModal() { document.getElementById('addModal').classList.remove('show'); }
+
+    async function submitAdd() {
+        const name = document.getElementById('addName').value.trim();
+        const position = document.getElementById('addPosition').value.trim();
+        const gameName = document.getElementById('addGameName').value.trim();
+        if (!name || !gameName) { toast('Name and Game Name required', 'error'); return; }
+        try {
+            const res = await api('/api/db/add', {name, position: parseInt(position)||0, gameName});
+            if (res.success) {
+                toast('Record added', 'success');
+                addLog(`Added record: ${name}`, 'info');
+                closeAddModal();
+                document.getElementById('addName').value = '';
+                document.getElementById('addPosition').value = '';
+                document.getElementById('addGameName').value = '';
+                loadDB();
+            } else {
+                toast(res.message, 'error');
+                addLog('Add failed: ' + res.message, 'error');
+            }
+        } catch(e) { toast('Request failed', 'error'); }
+    }
+
+    function showDelConfirm(id) { currentDelId = id; document.getElementById('delConfirmId').textContent = '#' + id; document.getElementById('delConfirmModal').classList.add('show'); }
+    function closeDelConfirm() { currentDelId = null; document.getElementById('delConfirmModal').classList.remove('show'); }
+
+    async function confirmDelete() {
+        if (!currentDelId) return;
+        try {
+            const res = await api('/api/db/delete', {id: currentDelId});
+            if (res.success) {
+                toast('Record deleted', 'success');
+                addLog(`Deleted record #${currentDelId}`, 'info');
+                closeDelConfirm();
+                loadDB();
+            } else {
+                toast(res.message, 'error');
+            }
+        } catch(e) { toast('Request failed', 'error'); }
+    }
+
+    async function doWrite() {
+        const btn = document.getElementById('btnWrite');
+        btn.disabled = true; btn.textContent = 'Running...';
+        try {
+            const res = await api('/api/write');
+            document.getElementById('writeResult').innerHTML = `<span style="color:${res.success?'var(--green)':'var(--red)'}">${esc(res.message)}</span>`;
+            toast(res.message, res.success ? 'success' : 'error');
+            addLog('WriteOperation: ' + res.message, res.success ? 'info' : 'error');
+        } catch(e) {
+            document.getElementById('writeResult').innerHTML = `<span style="color:var(--red)">Failed: ${esc(e.message)}</span>`;
+            toast('Request failed', 'error');
+        } finally { btn.disabled = false; btn.textContent = 'Execute WriteOperation'; }
+    }
+
+    // ===== FILES =====
+    async function browseDir() {
+        const path = document.getElementById('browsePath').value.trim();
+        if (!path) return;
+        try {
+            const data = await api('/api/files/list', {path});
+            const el = document.getElementById('fileList');
+            if (!data.files || !data.files.length) {
+                el.innerHTML = '<div class="empty"><div class="icon">&#128193;</div>Empty directory</div>';
+                return;
+            }
+            el.innerHTML = data.files.map(f =>
+                `<div class="file-item" ${f.isDir?`onclick="document.getElementById('browsePath').value='${esc(f.path)}';browseDir()"`:''}>
+                    <span class="fi-icon">${f.isDir?'&#128193;':'&#128196;'}</span>
+                    <span class="fi-name">${esc(f.name)}</span>
+                    <span class="fi-size">${f.isDir?'':f.sizeStr}</span>
+                    <span class="fi-date">${f.dateStr}</span>
+                </div>`
+            ).join('');
+            addLog(`Browsed: ${path} (${data.files.length} items)`, 'info');
+        } catch(e) {
+            document.getElementById('fileList').innerHTML = `<div class="empty">Error: ${esc(e.message)}</div>`;
+            toast('Browse failed', 'error');
+        }
+    }
+
+    async function doRead() {
+        const path = document.getElementById('readFilePath').value.trim();
+        if (!path) { toast('Enter a file path', 'error'); return; }
+        try {
+            const res = await api('/api/read', {path});
+            const el = document.getElementById('readResult');
+            el.style.display = 'block';
+            el.textContent = res.success ? (res.content || res.message) : res.message;
+            addLog('Read: ' + path, res.success ? 'info' : 'error');
+            toast(res.message, res.success ? 'success' : 'error');
+        } catch(e) { toast('Read failed', 'error'); }
+    }
+
+    async function doMove() {
+        const source = document.getElementById('moveSource').value.trim();
+        const target = document.getElementById('moveTarget').value.trim();
+        if (!source || !target) { toast('Fill both paths', 'error'); return; }
+        try {
+            const res = await api('/api/transfer', {source, target});
+            document.getElementById('moveResult').innerHTML = `<span style="color:${res.success?'var(--green)':'var(--red)'}">${esc(res.message)}</span>`;
+            toast(res.message, res.success ? 'success' : 'error');
+            addLog(`Move: ${source} -> ${target}`, res.success ? 'info' : 'error');
+        } catch(e) { toast('Move failed', 'error'); }
+    }
+
+    async function doDelete() {
+        const path = document.getElementById('delFilePath').value.trim();
+        if (!path) { toast('Enter a file path', 'error'); return; }
+        try {
+            const res = await api('/api/delete', {path});
+            document.getElementById('delResult').innerHTML = `<span style="color:${res.success?'var(--green)':'var(--red)'}">${esc(res.message)}</span>`;
+            toast(res.message, res.success ? 'success' : 'error');
+            addLog('Delete: ' + path, res.success ? 'info' : 'error');
+        } catch(e) { toast('Delete failed', 'error'); }
+    }
+
+    // ===== ART =====
+    async function doArt() {
+        const text = document.getElementById('artText').value.trim();
+        if (!text) { toast('Enter text', 'error'); return; }
+        try {
+            const res = await api('/api/draw', {text});
+            const el = document.getElementById('artResult');
+            if (res.success) {
+                el.textContent = res.art;
+                el.style.display = 'block';
+                addLog(`Generated art: "${text}"`, 'info');
+                toast('Art generated', 'success');
+            } else {
+                toast(res.message, 'error');
+            }
+        } catch(e) { toast('Art generation failed', 'error'); }
+    }
+
+    // ===== SYSINFO =====
+    async function loadSysInfo() {
+        try {
+            const info = await apiGet('/api/system/info');
+            const el = document.getElementById('sysInfoGrid');
+            const items = [
+                ['Java Version', info.javaVersion],
+                ['OS Name', info.osName],
+                ['OS Arch', info.osArch],
+                ['CPU Cores', info.cores],
+                ['Max Memory', info.maxMemory],
+                ['Used Memory', info.usedMemory],
+                ['Free Memory', info.freeMemory],
+                ['Total Memory', info.totalMemory],
+                ['Server Port', info.serverPort],
+                ['DB URL', info.dbUrl],
+                ['DB Status', info.dbConnected ? 'Connected' : 'Disconnected'],
+                ['Project Dir', info.projectDir],
+            ];
+            el.innerHTML = items.map(([k,v]) =>
+                `<div class="info-item"><span class="k">${k}</span><span class="v">${esc(String(v||'--'))}</span></div>`
+            ).join('');
+            addLog('System info loaded', 'info');
+        } catch(e) {
+            document.getElementById('sysInfoGrid').innerHTML = `<div class="empty">Error: ${esc(e.message)}</div>`;
+        }
+    }
+
+    // ===== UTILS =====
+    function esc(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+
+    // ===== INIT =====
+    loadDashboard();
+    </script>
+</body>
+</html>
