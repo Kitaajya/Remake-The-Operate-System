@@ -3,6 +3,119 @@
 
 重构操作系统，主要用java，cpp等。
 用Java和C++重构操作系统是一个极具挑战性的宏大工程。通常来说，操作系统的内核需要直接管理硬件资源，因此C++是核心首选，而Java则常被用于构建更高层的系统服务或用户空间应用。
+EsportPlant —— 电竞超植操作系统
+项目概述
+EsportPlant 是一个面向电竞数据管理的综合性工具平台，集成了数据库管理、文件系统操作、系统监控和中文字符画生成等功能。项目采用三层架构：
+后端：Spring Boot 3.2 + MySQL 8.4
+Web 前端：原生 HTML/CSS/JavaScript（赛博朋克风格）
+桌面端：JavaFX 25（同风格 GUI）
+
+核心功能模块
+
+一、数据库管理
+提供对 MySQL 数据库 e_table 表的完整 CRUD 操作：
+查询记录：展示表中所有记录，包含 ID、姓名、段位、游戏名四个字段。
+新增记录：通过弹窗表单向数据库插入新记录，支持表单验证。
+删除记录：选中目标记录后弹出二次确认框，防止误删。
+写入文件：将 e_table 全部数据导出到 D:\桌面\NameCodeForE_Plant.txt，并自动插入一条示例数据（端木生治 / 潮州神医）。
+对应的后端 API 接口：/api/db/records、/api/db/add、/api/db/delete、/api/write。
+
+二、文件系统操作
+提供完整的文件管理能力，所有操作均通过后端 API 完成：
+目录浏览：查看指定目录下的文件和子目录，显示文件名、大小和最后修改时间。
+读取文件：支持读取 .txt 文本文件和 .docx Word 文档的内容。
+移动文件：将文件从源路径移动到目标路径，自动创建目标目录（如果不存在）。
+删除文件：将文件移入系统回收站（安全删除），优先使用 Java Desktop API，降级方案为 PowerShell 命令。
+对应的后端 API 接口：/api/files/list、/api/read、/api/transfer、/api/delete。
+
+三、系统监控
+实时展示服务器和 JVM 运行状态，所有信息通过一个接口聚合返回：
+Java 版本和操作系统信息（名称、架构）。
+CPU 核心数量。
+内存使用情况：最大内存、已用内存、空闲内存、总内存。
+进程运行时长（Uptime），格式化为 X时X分X秒。
+数据库连接状态（在线/离线）及当前记录总数。
+当前项目工作目录。
+对应的后端 API 接口：/api/system/info。
+
+四、中文字符画生成器
+将任意中文字符串（如"电竞之王"、"唐山神医"）转换为 ASCII 字符画，输出为 █ 和空格组成的点阵图形：
+纯 Java AWT 实现，无需外部字体库。
+自动适配系统支持的中文字体（优先使用微软雅黑、宋体、黑体等）。
+控制台交互菜单、Web 前端和 JavaFX 桌面端三端均支持。
+可调节字体大小和采样密度，生成不同精细度的字符画。
+对应的后端 API 接口：/api/draw。
+
+五、桌面 GUI（JavaFX）
+除 Web 界面外，项目还提供了一套完整的 JavaFX 桌面客户端，功能与 Web 端完全对应：
+侧边栏导航：包含 Dashboard、Database、Files、Art、System Info、Logs 六个页面。
+Dashboard 面板：实时显示数据库状态、记录数、磁盘文件数、JVM 内存占用量和系统运行时长。
+Database Manager：以表格形式展示数据，支持增删改操作和写入文件功能。
+File Manager：可视化文件浏览，支持读取、移动、删除操作。
+Character Art：输入文字后实时生成并显示字符画。
+System Info：以键值对形式展示服务器全部参数。
+Logs：读取并显示 logs/spring.log 日志文件内容，支持刷新和清空。
+入口类：org.designer.esportplant.gui.EsportPlantGui 或 GuiLauncher。
+
+六、控制台交互菜单（CLI）
+项目启动时在控制台自动显示一个交互式菜单（由 ChooseProgrammerToUseMySystemOperation.choice() 驱动），提供六个选项：
+写入文件并操作数据库。
+读取文件内容（可指定文件路径）。
+移动单个文件。
+删除单个文件到回收站。
+绘制中文字符画。
+退出程序。
+该模式适合在无 GUI 环境下快速测试各项功能，所有操作均有日志输出和错误处理。
+
+技术栈一览：
+后端框架：Spring Boot 3.2.0。
+数据库：MySQL 8.4.8，通过 JDBC 原生驱动连接。
+Web 前端：原生 HTML/CSS/JavaScript，独特的主题。
+桌面 GUI：JavaFX 25.0.2。
+文件处理：Apache POI 5.2.5，支持 .docx 格式文档读取。
+字符画生成：Java AWT，纯 JDK 实现。
+构建工具：Maven 3.9.16，使用 Maven Wrapper 无需预装。
+JDK 版本：17+（项目已配置为 Java 17）。
+
+快速启动
+前置条件：
+MySQL 8.0+ 已启动，数据库名 E_Plant，表名 e_table（字段：id、name、position、game_name）。
+JDK 17+ 已安装。
+Maven 环境已配置（或使用项目自带的 Maven Wrapper）。
+
+✔️启动方式一：Web版
+执行命令 ./mvnw clean spring-boot:run（Windows 下为 mvnw.cmd）。
+启动后访问：主页 http://localhost:8082 ，后台管理 http://localhost:8082/admin.html。
+✔️启动方式二：JavaFX 桌面版
+运行 org.designer.esportplant.GuiLauncher 或 EsportPlantGui.main() 方法。
+✔️启动方式三：控制台交互版
+直接启动 Spring Boot 应用，控制台会自动弹出功能菜单，按数字键选择操作即可。
+
+关键文件说明
+ApiController.java —— 所有 REST API 的集中控制器，包含系统信息、数据库 CRUD、文件操作和字符画生成等全部接口。
+WriteFile.java —— 数据库查询后写入文件的核心逻辑，同时包含中文字符画生成算法。
+ReadFiles.java —— 通用文件读取器，同时支持 .txt 文本文件和 .docx Word 文档。
+TransferPathOfSingleFile.java —— 文件移动功能，支持跨分区移动和自动创建目标目录。
+DeleteSingleFile.java —— 文件删除功能，优先使用 Java Desktop API 移入回收站，降级方案为调用 PowerShell。
+EsportPlantGui.java —— JavaFX 桌面 GUI 主程序，包含完整的界面布局和事件绑定。
+admin.html / index.html —— Web 前端页面，采用赛博朋克风格设计。
+application.properties —— 核心配置文件，包含服务端口、数据库连接、字符编码等全部配置项。
+
+默认配置
+服务端口：8082
+
+数据库地址：localhost:3306/E_Plant
+
+数据库用户名/密码：root / 123456
+
+文件输出路径：D:\桌面\NameCodeForE_Plant.txt
+
+字符画字体大小：150pt，自动适配系统已安装的中文字体
+
+项目编码：UTF-8（全局统一）
+
+总结本项目：EsportPlant 是一个功能完整、开箱即用的电竞数据管理工具，它将常见的数据库增删改查、文件系统操作和系统监控整合到了一个统一的界面中，既适合作为学习 Spring Boot + JavaFX 的示例项目，也可以作为实际工具的起点进行二次开发。项目同时提供了 Web、桌面 GUI 和控制台三种交互方式，满足不同场景的使用需求。
+
 
 以下是基于这两种语言特性的重构概述：
 
